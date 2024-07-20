@@ -8,24 +8,30 @@ import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { UserContext } from "../../context/UserContext";
 import { useContext, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { handleLogoutRedux } from '../../redux/action/useraction';
 function Header(props) {
 
-  const { user, logout } = useContext(UserContext);
-
+  // const { user, logout } = useContext(UserContext);
+  const user = useSelector(state => state.accout.user);
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   useEffect(() => {
     // navigate('/login');
-  }, [])
+    if (user && user.auth === false && window.location.pathname !== '/login') {
+      toast.success('success logout');
+      navigate('/');
+    }
+  }, [user])
   const handleLogout = () => {
-    logout();
-    toast.success('success logout');
-    navigate('/');
+    dispatch(handleLogoutRedux());
   }
+
   return (
     <Navbar bg="dark" data-bs-theme="dark" expand="lg" className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">
+        <NavLink to="/" className="navbar-brand">
           <img
             src={logo}
             width="30"
@@ -33,9 +39,9 @@ function Header(props) {
             className="d-inline-block align-top"
             alt="React Bootstrap logo"
           />
-
           <span> Bao's MiniApp</span>
-        </Navbar.Brand>
+        </NavLink>
+
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           {(user && user.auth || window.location.pathname !== '/login') &&

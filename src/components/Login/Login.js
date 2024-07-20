@@ -4,19 +4,19 @@ import { toast } from "react-toastify";
 import { loginApi } from "../../service/Userservice";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
+import { handleLoginRedux } from "../../redux/action/useraction";
+import { useDispatch, useSelector } from "react-redux";
+
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPasswork] = useState('');
     const [isShowPassword, setIsShowPassword] = useState(false);
-    const [loadingApi, setLoadingAPI] = useState(false);
+    const isLoading = useSelector(state => state.accout?.isLoading);
+    const accout = useSelector(state => state.accout);
 
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { user, loginContext } = useContext(UserContext);
-    useEffect(() => {
-        if (user && user.auth) {
-            navigate('/');
-        }
-    })
+
     const handleeys = (event) => {
         let eyes = document.querySelectorAll('.eye');
         // console.log(eyes);
@@ -32,17 +32,8 @@ function Login() {
             toast.error("Email/Passwork is require");
             return;
         }
-        setLoadingAPI(true);
-        let res = await loginApi(email.trim(), password);
-        // console.log(res);
-        setLoadingAPI(false);
-        if (res?.token) {
-            loginContext(email.trim(), res.token);
-            toast.success("Login success");
-            navigate('/');
-        } else if (res?.status >= 400) {
-            toast.error("ERROR");
-        }
+
+        dispatch(handleLoginRedux(email.trim(), password));
     }
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
@@ -55,6 +46,12 @@ function Login() {
             handleLogin();
         }
     }
+    useEffect(() => {
+        console.log(accout);
+        if (accout && accout.user.auth === true) {
+            navigate('/');
+        }
+    }, [accout])
     return (<>
         <div className="login-container col-12 col-sm-4">
             <div className="title">Login</div>
@@ -82,9 +79,9 @@ function Login() {
             <button
                 type="submit"
                 className={`${email && password ? 'btn-active' : ''}`}
-                disabled={email && password && !loadingApi ? false : true}
+                disabled={email && password && !isLoading ? false : true}
                 onClick={() => handleLogin()}>
-                {loadingApi && <div className={"spinner-border spinner-border-sm"} role="status">
+                {isLoading && <div className={"spinner-border spinner-border-sm"} role="status">
                     <span className="visually-hidden">Loading...</span>
                 </div>}
                 <span>  </span>
